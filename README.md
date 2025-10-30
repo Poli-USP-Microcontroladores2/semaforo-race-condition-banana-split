@@ -1,6 +1,69 @@
 # PSI-Microcontroladores2-Aula06
 Atividade: Resolução de Race Condition com Semáforo
 
+- Integrantes: Arthur Londero (16855595) e Anita Cunha.
+- Cenário escolhido: simplificação do THERAC-25, máquina de radioterapia.
+
+## Descrição do cenário
+O sistema simula uma máquina de radioterapia simplificada, inspirada no caso real do Therac-25.
+
+No sistema, existem duas threads principais:
+
+Operador (operator_thread) – responsável por configurar o modo e a energia do feixe (ELECTRON ou PHOTON) e aplicar o comando.
+
+Hardware (hardware_thread) – responsável por ler os valores do comando e realizar a aplicação do feixe.
+
+Uma terceira thread, monitor_thread, observa o estado do sistema e acende LEDs:
+
+  Verde → operação normal.
+
+  Vermelho → erro detectado (race condition ou leitura inconsistente).
+
+
+## Descrição da Race Condition
+
+Na versão sem mutex, as threads compartilham a estrutura cmd sem nenhum mecanismo de exclusão mútua.
+A sequência de eventos que leva à falha é:
+
+O operador começa a configurar um novo comando:
+
+cmd.mode = 1 (FÓTON)
+cmd.energy = 100
+cmd.apply = true
+
+Antes que termine, o hardware preempta a CPU e começa a ler cmd enquanto ele ainda está sendo modificado.
+
+O hardware pode ler, por exemplo:
+
+mode = 1 (FÓTON)
+
+energy = 10 (parâmetro editado durante a leitura!)
+
+Essa combinação é fisicamente impossível — um feixe de fótons de baixa energia não existe — mas o sistema executa o comando mesmo assim.
+
+Essa inconsistência representa o mesmo tipo de falha lógica que ocorreu no Therac-25, onde a leitura incorreta de parâmetros resultou em dosagens letais de radiação.
+No nosso sistema, a falha é detectada automaticamente e o LED muda para vermelho permanentemente.
+
+## Solução: Exclusão Mútua com k_mutex
+
+Para eliminar a race condition, foi utilizado o mecanismo de mutex do Zephyr (k_mutex).
+O acesso à estrutura compartilhada cmd foi protegido com:
+
+k_mutex_lock(&cmd_mutex, K_FOREVER);
+
+(parte sensível aqui)
+
+k_mutex_unlock(&cmd_mutex);
+
+
+
+Assim:
+
+- O operador só pode alterar o comando quando o hardware não está lendo.
+- O hardware só pode ler quando o operador não está modificando.
+- A atomicidade da operação é garantida, impedindo leituras parciais.
+
+
 ## 🎯 Objetivos da Atividade
 Nesta atividade, os alunos deverão:
 - Retomar o código gerado por IA em atividade anterior que apresenta **condições de corrida (race conditions)**.
