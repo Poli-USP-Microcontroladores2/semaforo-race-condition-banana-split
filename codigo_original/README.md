@@ -1,0 +1,6 @@
+# Atividade Acelerômetro - Serial
+
+O projeto fornecido utiliza o acelerômetro MMA8451Q conectado ao I²C - canal 0 - e envia os dados da aceleração (x, y e z) pela porta serial para o terminal do computador. O arquivo leitor_serial.py pode ser usado para fazer capturar os dados da serial e gravar em um arquivo . csv. Para rodar o arquivo python use o comando `python leitor_serial.py` na terminal (pode ser no VSCode, no CMD ou PowerShell). Verique a porta COM do código python e o arquivo .csv de destino. 
+
+1. Modifique o projeto fornecido para que utilize threads (1 para aquisição do sinal do acelerômetro e 1 para o envio da aceleração pela serial). Calcule a velocidade e posição (em outro thread) a partir da aceleração usando alguma forma de integração numérica (regra dos trapézios, Simpson e quadratura gaussiana). Crie um branch e envie (push) o seu projeto. 
+2. Modifique o python para capturar a velocidade e a posição. Envie um gráfico da aceleração, velocidade e posição pelo moodle junto com comentários sobre a estratégias utilizada para as threads em termos de escalonamento.
